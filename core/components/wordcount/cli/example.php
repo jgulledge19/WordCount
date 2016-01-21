@@ -52,6 +52,40 @@ require_once MODX_CORE_PATH .'components/wordcount/model/wordcount/WordCount.php
 
 $wordCount = new WordCount();
 $wordCount->init($modx);
+echo 'With strip_tags()'.PHP_EOL;
+$total = $wordCount
+    //->setDebug()
+    ->addResourceWhere(
+        array(
+            'id:IN' => array(1,2,3,4,5,30),
+            'OR:parent:IN' => array(1,2,3,4,5,30)
+        )
+    )
+    ->addResourceFilter(
+        'id:NOT IN',
+        array(2672, 2673, 2674, 36, 1853, 2770, 2694, 1860, 2695, 2698)
+    )
+    //->setConfig('stripTags', false)
+    ->countResources()
+;
+echo '  Estimated total word count for resources: '.$total.' from a page total of: '.$wordCount->resourcePageTotal();
+echo PHP_EOL;
+
+echo '  Estimated total word count for Chunks: '.$wordCount->countChunks();
+echo PHP_EOL;
+
+echo '  Estimated total word count for Lexicons: '.$wordCount->countLexicons();
+echo PHP_EOL;
+
+echo '  Estimated total word count for Resource 1724 with strip tags: '.
+    $wordCount
+        ->setConfig('stripTags', true)
+        ->countResource(1724);
+echo PHP_EOL;
+
+
+echo 'Without strip_tags()'.PHP_EOL;
+$wordCount->setConfig('stripTags', false);
 
 $total = $wordCount
     //->setDebug()
@@ -68,12 +102,16 @@ $total = $wordCount
     //->setConfig('stripTags', false)
     ->countResources()
 ;
-
-echo 'Estimated total word count for resources: '.$total.' from a page total of: '.$wordCount->resourcePageTotal();
+echo '  Estimated total word count for resources: '.$total.' from a page total of: '.$wordCount->resourcePageTotal();
 echo PHP_EOL;
 
-echo 'Estimated total word count for Chunks: '.$wordCount->countChunks();
+echo '  Estimated total word count for Chunks: '.$wordCount->countChunks();
 echo PHP_EOL;
 
-echo 'Estimated total word count for Lexicons: '.$wordCount->countLexicons();
+echo '  Estimated total word count for Lexicons: '.$wordCount->countLexicons();
 echo PHP_EOL;
+
+echo '  Estimated total word count for Resource 1724: '.
+    $wordCount->countResource(1724);
+echo PHP_EOL;
+

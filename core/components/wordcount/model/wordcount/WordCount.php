@@ -147,22 +147,26 @@ class WordCount {
 
     /**
      * @param int $id
-     * @param null|array $resource ~
+     * @param null|array $resource_data ~
      *
      * @return int
      */
-    public function countResource($id, $resource=null)
+    public function countResource($id, $resource_data=null)
     {
         $count = 0;
-        if ( is_null($resource) ) {
-            // @TODO query the resource
+        if ( is_null($resource_data) ) {
+            $resource = $this->modx->getObject('modResource', $id);
+            if ( is_object($resource) ) {
+                $resource_data = $resource->toArray();
+            }
         }
         // first count the countable resource columns:
         foreach ( $this->countable_resource_columns as $column ) {
-            if ( isset($resource[$column]) ) {
-                $count += $this->countWords($resource[$column]);
+            if ( isset($resource_data[$column]) ) {
+                $count += $this->countWords($resource_data[$column]);
             }
         }
+        $count += $this->countResourceTVs($id, $resource_data['template']);
 
         return $count;
     }
@@ -188,17 +192,18 @@ class WordCount {
         } else {
             $tvs = $this->template_columns[$template_id];
         }
+        if ( count($tvs) > 0 ) {
+            $tvValues = $this->modx->getCollection(
+                'modTemplateVarResource',
+                array(
+                    'tmplvarid:IN' => $tvs,
+                    'contentid' => $id
+                )
+            );
 
-        $tvValues = $this->modx->getCollection(
-            'modTemplateVarResource',
-            array(
-                'tmplvarid:IN' => $tvs,
-                'contentid' => $id
-            )
-        );
-
-        foreach ( $tvValues as $tvValue) {
-            $count += $this->countWords($tvValue->get('value'));
+            foreach ($tvValues as $tvValue) {
+                $count += $this->countWords($tvValue->get('value'));
+            }
         }
 
         /** One at a time
